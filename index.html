@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ویډرا ټیم - روزانه ګټه</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <h1>ویډرا ټیم</h1>
+                <p>روزانه ګټه</p>
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">کور</a></li>
+                    <li><a href="#">زموږ په اړه</a></li>
+                    <li><a href="#">پلانونه</a></li>
+                    <li><a href="#">اړیکه</a></li>
+                </ul>
+            </nav>
+            <div class="auth-buttons">
+                <button id="loginBtn">ننوتل</button>
+                <button id="registerBtn">راجستر</button>
+            </div>
+        </header>
+
+        <main>
+            <section class="hero">
+                <div class="hero-content">
+                    <h2>خپل پانګه اچونه وکړئ او روزانه ګټه ترلاسه کړئ</h2>
+                    <p>د USDT BEP20 سره خوندي او چټک پانګه اچونه او ویډرا</p>
+                    <button id="investNow">اوس پانګه اچونه وکړئ</button>
+                </div>
+                <div class="hero-image">
+                    <img src="https://via.placeholder.com/500x300" alt="Investment Illustration">
+                </div>
+            </section>
+
+            <section class="stats">
+                <div class="stat-card">
+                    <i class="fas fa-users"></i>
+                    <h3>10,000+</h3>
+                    <p>عضوان</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-hand-holding-usd"></i>
+                    <h3>$5M+</h3>
+                    <p>پانګه اچونه</p>
+                </div>
+                <div class="stat-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>2.5%</h3>
+                    <p>روزانه ګټه</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Auth Modals -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>ننوتل</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="loginEmail">بریښنالیک</label>
+                    <input type="email" id="loginEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="loginPassword">پاسورډ</label>
+                    <input type="password" id="loginPassword" required>
+                </div>
+                <button type="submit">ننوتل</button>
+                <p>نه تاسو راجستر یاست؟ <a href="#" id="showRegister">راجستر شئ</a></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="registerModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>راجستر</h2>
+            <form id="registerForm">
+                <div class="form-group">
+                    <label for="registerName">نوم</label>
+                    <input type="text" id="registerName" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerEmail">بریښنالیک</label>
+                    <input type="email" id="registerEmail" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerPassword">پاسورډ</label>
+                    <input type="password" id="registerPassword" required>
+                </div>
+                <div class="form-group">
+                    <label for="registerConfirmPassword">پاسورډ تایید کړئ</label>
+                    <input type="password" id="registerConfirmPassword" required>
+                </div>
+                <button type="submit">راجستر</button>
+                <p>دمخه راجستر یاست؟ <a href="#" id="showLogin">ننوتل</a></p>
+            </form>
+        </div>
+    </div>
+
+    <div id="dashboardModal" class="modal">
+        <div class="modal-content dashboard">
+            <span class="close">&times;</span>
+            <h2>ستاسو ډاشبورډ</h2>
+            <div class="user-info">
+                <div class="avatar">
+                    <i class="fas fa-user"></i>
+                </div>
+                <h3 id="userName"></h3>
+                <p id="userEmail"></p>
+            </div>
+            
+            <div class="balance-card">
+                <h3>ستاسو موجودي</h3>
+                <h2 id="userBalance">0 USDT</h2>
+                <div class="action-buttons">
+                    <button id="depositBtn">پانګه اچونه</button>
+                    <button id="withdrawBtn">ویډرا</button>
+                </div>
+            </div>
+            
+            <div class="transaction-history">
+                <h3>تاریخچه</h3>
+                <ul id="transactionList">
+                    <!-- Transactions will be added here dynamically -->
+                </ul>
+            </div>
+            
+            <button id="logoutBtn">وتل</button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
