@@ -1,0 +1,1681 @@
+<!DOCTYPE html>
+<html lang="en" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AFG TRADE - Bitcoin Trading Platform</title>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #2c3e50;
+            --success-color: #2ecc71;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --up-color: #2ecc71;
+            --down-color: #e74c3c;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Tajawal', sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            direction: rtl;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 15px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: white;
+            text-decoration: none;
+        }
+        
+        .logo span {
+            color: var(--secondary-color);
+        }
+        
+        .auth-buttons button {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .auth-buttons button:hover {
+            background-color: #2980b9;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-info span {
+            margin-left: 10px;
+        }
+        
+        .logout-btn {
+            background-color: var(--danger-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        
+        .logout-btn:hover {
+            background-color: #c0392b;
+        }
+        
+        .main-content {
+            display: flex;
+            margin-top: 20px;
+            gap: 20px;
+        }
+        
+        .chart-section {
+            flex: 2;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        
+        .chart-title {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        
+        .time-frames {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .time-frame {
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: var(--light-color);
+            cursor: pointer;
+            font-size: 14px;
+        }
+        
+        .time-frame.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 400px;
+            margin-bottom: 20px;
+        }
+        
+        .trading-section {
+            flex: 1;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .balance-info {
+            background-color: var(--light-color);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .balance-amount {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--secondary-color);
+            margin-top: 5px;
+        }
+        
+        .trade-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .trade-type {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .trade-type-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        
+        .long-btn {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+        
+        .long-btn.active {
+            background-color: var(--success-color);
+            color: white;
+        }
+        
+        .short-btn {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+        
+        .short-btn.active {
+            background-color: var(--danger-color);
+            color: white;
+        }
+        
+        .amount-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .amount-btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: var(--light-color);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .amount-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .custom-amount {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .time-selection {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .time-btn {
+            padding: 8px 15px;
+            border-radius: 5px;
+            background-color: var(--light-color);
+            border: none;
+            cursor: pointer;
+        }
+        
+        .time-btn.active {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .trade-btn {
+            padding: 12px;
+            border-radius: 5px;
+            border: none;
+            background-color: var(--secondary-color);
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .trade-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .price-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        
+        .price-label {
+            font-weight: bold;
+        }
+        
+        .price-value {
+            font-weight: bold;
+            color: var(--secondary-color);
+        }
+        
+        .history-section {
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+        
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+        
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        
+        .history-table th, .history-table td {
+            padding: 10px;
+            text-align: right;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .history-table th {
+            background-color: var(--light-color);
+            font-weight: bold;
+        }
+        
+        .profit {
+            color: var(--success-color);
+        }
+        
+        .loss {
+            color: var(--danger-color);
+        }
+        
+        /* Auth Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .submit-btn {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .cancel-btn {
+            background-color: var(--light-color);
+            color: var(--dark-color);
+        }
+        
+        .error-message {
+            color: var(--danger-color);
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
+        .success-message {
+            color: var(--success-color);
+            font-size: 14px;
+            margin-top: 5px;
+            text-align: center;
+        }
+        
+        .trade-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 12px;
+            z-index: 10;
+        }
+        
+        .long-indicator {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+        
+        .short-indicator {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+        
+        /* Trade History Share */
+        .history-share {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+        
+        .share-btn {
+            padding: 5px 10px;
+            border-radius: 5px;
+            background-color: var(--light-color);
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        /* Trade Screenshot Modal */
+        .trade-screenshot {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .download-btn {
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        /* Signal History */
+        .signal-history {
+            margin-top: 20px;
+        }
+        
+        .signal-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .signal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        
+        .signal-type {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        
+        .signal-type.long {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+        
+        .signal-type.short {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+        
+        .signal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .signal-detail {
+            font-size: 14px;
+        }
+        
+        .signal-detail-label {
+            font-weight: bold;
+            color: #777;
+        }
+        
+        .signal-result {
+            text-align: center;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 5px;
+            border-radius: 5px;
+        }
+        
+        .signal-result.success {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+        
+        .signal-result.failed {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+        
+        .signal-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+            font-size: 12px;
+            color: #777;
+        }
+        
+        .signal-actions {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .signal-action-btn {
+            padding: 3px 8px;
+            border-radius: 3px;
+            background-color: var(--light-color);
+            border: none;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        /* Price Ticker */
+        .price-ticker {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .price-change {
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        .price-up {
+            background-color: rgba(46, 204, 113, 0.2);
+            color: var(--success-color);
+        }
+        
+        .price-down {
+            background-color: rgba(231, 76, 60, 0.2);
+            color: var(--danger-color);
+        }
+        
+        /* Screenshot Template */
+        .screenshot-template {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            width: 400px;
+            position: relative;
+            display: none;
+        }
+        
+        .screenshot-header {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+        
+        .screenshot-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .screenshot-logo span {
+            color: var(--secondary-color);
+        }
+        
+        .screenshot-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        
+        .screenshot-chart {
+            height: 200px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .screenshot-trade-info {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .screenshot-info-item {
+            font-size: 14px;
+        }
+        
+        .screenshot-info-label {
+            font-weight: bold;
+            color: #777;
+        }
+        
+        .screenshot-result {
+            text-align: center;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .screenshot-footer {
+            text-align: center;
+            font-size: 12px;
+            color: #777;
+            margin-top: 15px;
+        }
+        
+        @media (max-width: 768px) {
+            .main-content {
+                flex-direction: column;
+            }
+            
+            .time-frames, .trade-type, .amount-selection, .time-selection {
+                flex-wrap: wrap;
+            }
+            
+            .signal-details {
+                grid-template-columns: 1fr;
+            }
+            
+            .screenshot-template {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container header-content">
+            <a href="#" class="logo">AFG <span>TRADE</span></a>
+            <div class="auth-buttons" id="authButtons">
+                <button id="loginBtn">ورود</button>
+                <button id="registerBtn">ثبت نام</button>
+            </div>
+            <div class="user-info" id="userInfo" style="display: none;">
+                <span id="userEmail"></span>
+                <button class="logout-btn" id="logoutBtn">خروج</button>
+            </div>
+        </div>
+    </header>
+    
+    <div class="container">
+        <div class="main-content">
+            <div class="chart-section">
+                <div class="chart-header">
+                    <div class="chart-title">بیتکوین/دلار (BTC/USD)</div>
+                    <div class="time-frames">
+                        <div class="time-frame" data-time="1m">1 دقیقه</div>
+                        <div class="time-frame" data-time="3m">3 دقیقه</div>
+                        <div class="time-frame active" data-time="5m">5 دقیقه</div>
+                        <div class="time-frame" data-time="30m">30 دقیقه</div>
+                    </div>
+                </div>
+                <div class="price-ticker">
+                    <div id="currentPriceDisplay">$0.00</div>
+                    <div class="price-change" id="priceChangeDisplay">0.00% (0.00)</div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="priceChart"></canvas>
+                </div>
+            </div>
+            
+            <div class="trading-section">
+                <div class="balance-info">
+                    <div>موجودی حساب</div>
+                    <div class="balance-amount" id="balanceAmount">$0.00</div>
+                </div>
+                
+                <div class="trade-form">
+                    <div class="trade-type">
+                        <button class="trade-type-btn long-btn active" id="longBtn">لانگ (صعودی)</button>
+                        <button class="trade-type-btn short-btn" id="shortBtn">شارت (نزولی)</button>
+                    </div>
+                    
+                    <div>
+                        <label for="amount">مقدار سرمایه گذاری ($)</label>
+                        <div class="amount-selection">
+                            <button class="amount-btn" data-amount="10">10$</button>
+                            <button class="amount-btn" data-amount="50">50$</button>
+                            <button class="amount-btn" data-amount="100">100$</button>
+                            <button class="amount-btn" data-amount="500">500$</button>
+                            <button class="amount-btn" data-amount="1000">1000$</button>
+                        </div>
+                        <input type="number" id="amount" class="custom-amount" placeholder="مقدار دلخواه">
+                    </div>
+                    
+                    <div>
+                        <label>زمان معامله</label>
+                        <div class="time-selection">
+                            <button class="time-btn" data-time="5">5 ثانیه</button>
+                            <button class="time-btn" data-time="10">10 ثانیه</button>
+                            <button class="time-btn active" data-time="20">20 ثانیه</button>
+                            <button class="time-btn" data-time="60">1 دقیقه</button>
+                        </div>
+                    </div>
+                    
+                    <button class="trade-btn" id="tradeBtn">شروع معامله</button>
+                    
+                    <div class="price-info">
+                        <div>
+                            <div class="price-label">قیمت فعلی</div>
+                            <div class="price-value" id="currentPrice">$0.00</div>
+                        </div>
+                        <div>
+                            <div class="price-label">سود/ضرر احتمالی</div>
+                            <div class="price-value" id="potentialProfit">$0.00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="history-section">
+            <div class="section-title">تاریخچه معاملات</div>
+            <div id="signalHistory">
+                <!-- Signal history will be populated here -->
+            </div>
+        </div>
+    </div>
+    
+    <!-- Login Modal -->
+    <div class="modal" id="loginModal">
+        <div class="modal-content">
+            <div class="modal-title">ورود به حساب کاربری</div>
+            <div class="form-group">
+                <label for="loginEmail">ایمیل</label>
+                <input type="email" id="loginEmail" placeholder="ایمیل خود را وارد کنید">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">رمز عبور</label>
+                <input type="password" id="loginPassword" placeholder="رمز عبور خود را وارد کنید">
+            </div>
+            <div class="error-message" id="loginError"></div>
+            <div class="success-message" id="loginSuccess"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn submit-btn" id="loginSubmitBtn">ورود</button>
+                <button class="modal-btn cancel-btn" id="loginCancelBtn">انصراف</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Register Modal -->
+    <div class="modal" id="registerModal">
+        <div class="modal-content">
+            <div class="modal-title">ثبت نام کاربر جدید</div>
+            <div class="form-group">
+                <label for="registerEmail">ایمیل</label>
+                <input type="email" id="registerEmail" placeholder="ایمیل خود را وارد کنید">
+            </div>
+            <div class="form-group">
+                <label for="registerPassword">رمز عبور</label>
+                <input type="password" id="registerPassword" placeholder="رمز عبور خود را وارد کنید">
+            </div>
+            <div class="form-group">
+                <label for="registerConfirmPassword">تکرار رمز عبور</label>
+                <input type="password" id="registerConfirmPassword" placeholder="رمز عبور خود را تکرار کنید">
+            </div>
+            <div class="error-message" id="registerError"></div>
+            <div class="success-message" id="registerSuccess"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn submit-btn" id="registerSubmitBtn">ثبت نام</button>
+                <button class="modal-btn cancel-btn" id="registerCancelBtn">انصراف</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Screenshot Template (hidden) -->
+    <div id="screenshotTemplate" class="screenshot-template">
+        <div class="screenshot-header">
+            <div class="screenshot-logo">AFG <span>TRADE</span></div>
+            <div class="screenshot-title">نتیجه معامله بیتکوین</div>
+        </div>
+        
+        <div class="screenshot-chart">
+            <canvas id="screenshotChart"></canvas>
+        </div>
+        
+        <div class="screenshot-trade-info">
+            <div class="screenshot-info-item">
+                <div class="screenshot-info-label">نوع معامله:</div>
+                <div id="screenshotType">لانگ</div>
+            </div>
+            <div class="screenshot-info-item">
+                <div class="screenshot-info-label">قیمت ورود:</div>
+                <div id="screenshotEntryPrice">$0.00</div>
+            </div>
+            <div class="screenshot-info-item">
+                <div class="screenshot-info-label">قیمت خروج:</div>
+                <div id="screenshotExitPrice">$0.00</div>
+            </div>
+            <div class="screenshot-info-item">
+                <div class="screenshot-info-label">مقدار سرمایه:</div>
+                <div id="screenshotAmount">$0.00</div>
+            </div>
+            <div class="screenshot-info-item">
+                <div class="screenshot-info-label">مدت زمان:</div>
+                <div id="screenshotDuration">0 ثانیه</div>
+            </div>
+            <div class="screenshot-info-item">
+                <div class="screenshot-info-label">تاریخ:</div>
+                <div id="screenshotDate">-</div>
+            </div>
+        </div>
+        
+        <div class="screenshot-result" id="screenshotResult">
+            نتیجه: موفق (+$0.00)
+        </div>
+        
+        <div class="screenshot-footer">
+            معامله شده در پلتفرم AFG TRADE
+        </div>
+    </div>
+    
+    <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyD4UbW_Iy4kUWH3V70Q1mWCI4-_KFk6ku4",
+            authDomain: "onlinewark-a0147.firebaseapp.com",
+            databaseURL: "https://onlinewark-a0147-default-rtdb.firebaseio.com",
+            projectId: "onlinewark-a0147",
+            storageBucket: "onlinewark-a0147.appspot.com",
+            messagingSenderId: "92155538620",
+            appId: "1:92155538620:android:5e198a8eea6bf17f61f4b9"
+        };
+        
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        
+        // DOM Elements
+        const authButtons = document.getElementById('authButtons');
+        const userInfo = document.getElementById('userInfo');
+        const userEmail = document.getElementById('userEmail');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const registerBtn = document.getElementById('registerBtn');
+        const loginModal = document.getElementById('loginModal');
+        const registerModal = document.getElementById('registerModal');
+        const loginCancelBtn = document.getElementById('loginCancelBtn');
+        const registerCancelBtn = document.getElementById('registerCancelBtn');
+        const loginSubmitBtn = document.getElementById('loginSubmitBtn');
+        const registerSubmitBtn = document.getElementById('registerSubmitBtn');
+        const loginError = document.getElementById('loginError');
+        const registerError = document.getElementById('registerError');
+        const loginSuccess = document.getElementById('loginSuccess');
+        const registerSuccess = document.getElementById('registerSuccess');
+        const balanceAmount = document.getElementById('balanceAmount');
+        const longBtn = document.getElementById('longBtn');
+        const shortBtn = document.getElementById('shortBtn');
+        const amountInput = document.getElementById('amount');
+        const tradeBtn = document.getElementById('tradeBtn');
+        const currentPriceElement = document.getElementById('currentPrice');
+        const potentialProfitElement = document.getElementById('potentialProfit');
+        const signalHistory = document.getElementById('signalHistory');
+        const currentPriceDisplay = document.getElementById('currentPriceDisplay');
+        const priceChangeDisplay = document.getElementById('priceChangeDisplay');
+        
+        // Chart variables
+        let priceChart;
+        let screenshotChart;
+        let currentTimeFrame = '5m';
+        let currentPrice = 0;
+        let previousPrice = 0;
+        let priceHistory = [];
+        let tradeType = 'long';
+        let tradeAmount = 0;
+        let tradeDuration = 20;
+        let activeTrade = null;
+        let balance = 0;
+        
+        // Binance API for real price data
+        const BINANCE_API_URL = 'https://api.binance.com/api/v3';
+        
+        // Initialize the app
+        function initApp() {
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    // User is signed in
+                    authButtons.style.display = 'none';
+                    userInfo.style.display = 'flex';
+                    userEmail.textContent = user.email;
+                    
+                    // Load user data
+                    loadUserData(user.uid);
+                } else {
+                    // User is signed out
+                    authButtons.style.display = 'block';
+                    userInfo.style.display = 'none';
+                }
+            });
+            
+            // Initialize chart
+            initChart();
+            
+            // Get real Bitcoin price
+            getRealBitcoinPrice();
+            
+            // Simulate price changes
+            setInterval(getRealBitcoinPrice, 5000); // Update every 5 seconds
+            
+            // Event listeners
+            setupEventListeners();
+        }
+        
+        // Get real Bitcoin price from Binance API
+        async function getRealBitcoinPrice() {
+            try {
+                const response = await fetch(`${BINANCE_API_URL}/ticker/price?symbol=BTCUSDT`);
+                const data = await response.json();
+                
+                previousPrice = currentPrice;
+                currentPrice = parseFloat(data.price);
+                
+                // Update price history
+                if (priceHistory.length >= 100) {
+                    priceHistory.shift();
+                }
+                priceHistory.push(currentPrice);
+                
+                // Update chart
+                updateChart();
+                
+                // Update current price display
+                updateCurrentPrice();
+                
+                // Update price change display
+                updatePriceChange();
+                
+                // Update active trade if exists
+                if (activeTrade) {
+                    updateActiveTrade();
+                }
+            } catch (error) {
+                console.error('Error fetching Bitcoin price:', error);
+                // Fallback to simulated price if API fails
+                simulatePriceChange();
+            }
+        }
+        
+        // Simulate price change (fallback)
+        function simulatePriceChange() {
+            previousPrice = currentPrice;
+            
+            if (priceHistory.length === 0) {
+                currentPrice = 35000 + Math.random() * 10000 - 5000;
+            } else {
+                const lastPrice = priceHistory[priceHistory.length - 1];
+                let change = (Math.random() - 0.5) * 2; // Random change between -1 and 1
+                
+                // If there's an active trade, slightly bias the price based on trade type
+                if (activeTrade) {
+                    if (activeTrade.type === 'long') {
+                        change += 0.1; // Slight upward bias
+                    } else {
+                        change -= 0.1; // Slight downward bias
+                    }
+                }
+                
+                currentPrice = lastPrice + change * 100;
+                
+                // Ensure price stays within reasonable bounds
+                if (currentPrice < 30000) {
+                    currentPrice = 30000 + Math.random() * 1000;
+                } else if (currentPrice > 50000) {
+                    currentPrice = 50000 - Math.random() * 1000;
+                }
+            }
+            
+            // Update price history
+            if (priceHistory.length >= 100) {
+                priceHistory.shift();
+            }
+            priceHistory.push(currentPrice);
+            
+            // Update chart
+            updateChart();
+            
+            // Update current price display
+            updateCurrentPrice();
+            
+            // Update price change display
+            updatePriceChange();
+            
+            // Update active trade if exists
+            if (activeTrade) {
+                updateActiveTrade();
+            }
+        }
+        
+        // Update price change display
+        function updatePriceChange() {
+            if (previousPrice === 0 || priceHistory.length < 2) return;
+            
+            const change = currentPrice - previousPrice;
+            const changePercent = (change / previousPrice) * 100;
+            
+            if (change > 0) {
+                priceChangeDisplay.textContent = `+${changePercent.toFixed(2)}% (+${change.toFixed(2)})`;
+                priceChangeDisplay.className = 'price-change price-up';
+            } else if (change < 0) {
+                priceChangeDisplay.textContent = `${changePercent.toFixed(2)}% (${change.toFixed(2)})`;
+                priceChangeDisplay.className = 'price-change price-down';
+            } else {
+                priceChangeDisplay.textContent = `0.00% (0.00)`;
+                priceChangeDisplay.className = 'price-change';
+            }
+            
+            currentPriceDisplay.textContent = `$${currentPrice.toFixed(2)}`;
+        }
+        
+        // Initialize the price chart
+        function initChart() {
+            const ctx = document.getElementById('priceChart').getContext('2d');
+            
+            // Generate initial price data
+            if (priceHistory.length === 0) {
+                for (let i = 0; i < 100; i++) {
+                    priceHistory.push(35000 + Math.random() * 10000 - 5000);
+                }
+                currentPrice = priceHistory[priceHistory.length - 1];
+            }
+            
+            priceChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: priceHistory.map((_, index) => index),
+                    datasets: [{
+                        label: 'قیمت بیتکوین',
+                        data: priceHistory,
+                        borderColor: '#3498db',
+                        backgroundColor: (context) => {
+                            const ctx = context.chart.ctx;
+                            const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                            gradient.addColorStop(0, 'rgba(52, 152, 219, 0.3)');
+                            gradient.addColorStop(1, 'rgba(52, 152, 219, 0)');
+                            return gradient;
+                        },
+                        borderWidth: 2,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `قیمت: $${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: true,
+                            position: 'right',
+                            grid: {
+                                color: 'rgba(0, 0, 0, 0.05)'
+                            }
+                        }
+                    },
+                    interaction: {
+                        mode: 'nearest',
+                        axis: 'x',
+                        intersect: false
+                    }
+                }
+            });
+            
+            // Update current price display
+            updateCurrentPrice();
+        }
+        
+        // Update chart with new data
+        function updateChart() {
+            if (!priceChart) return;
+            
+            priceChart.data.labels = priceHistory.map((_, index) => index);
+            priceChart.data.datasets[0].data = priceHistory;
+            
+            // Update chart colors based on price movement
+            if (currentPrice > previousPrice) {
+                priceChart.data.datasets[0].borderColor = '#2ecc71';
+                priceChart.data.datasets[0].backgroundColor = (context) => {
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradient.addColorStop(0, 'rgba(46, 204, 113, 0.3)');
+                    gradient.addColorStop(1, 'rgba(46, 204, 113, 0)');
+                    return gradient;
+                };
+            } else if (currentPrice < previousPrice) {
+                priceChart.data.datasets[0].borderColor = '#e74c3c';
+                priceChart.data.datasets[0].backgroundColor = (context) => {
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradient.addColorStop(0, 'rgba(231, 76, 60, 0.3)');
+                    gradient.addColorStop(1, 'rgba(231, 76, 60, 0)');
+                    return gradient;
+                };
+            } else {
+                priceChart.data.datasets[0].borderColor = '#3498db';
+                priceChart.data.datasets[0].backgroundColor = (context) => {
+                    const ctx = context.chart.ctx;
+                    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+                    gradient.addColorStop(0, 'rgba(52, 152, 219, 0.3)');
+                    gradient.addColorStop(1, 'rgba(52, 152, 219, 0)');
+                    return gradient;
+                };
+            }
+            
+            priceChart.update();
+        }
+        
+        // Update current price display
+        function updateCurrentPrice() {
+            currentPriceElement.textContent = `$${currentPrice.toFixed(2)}`;
+            currentPriceDisplay.textContent = `$${currentPrice.toFixed(2)}`;
+            
+            // Update potential profit if amount is set
+            if (tradeAmount > 0) {
+                updatePotentialProfit();
+            }
+        }
+        
+        // Update potential profit display
+        function updatePotentialProfit() {
+            const profit = tradeAmount * 1; // 100% profit/loss
+            potentialProfitElement.textContent = `$${profit.toFixed(2)}`;
+            
+            if (tradeType === 'long') {
+                potentialProfitElement.style.color = '#2ecc71';
+            } else {
+                potentialProfitElement.style.color = '#e74c3c';
+            }
+        }
+        
+        // Setup event listeners
+        function setupEventListeners() {
+            // Auth buttons
+            loginBtn.addEventListener('click', () => {
+                loginModal.style.display = 'flex';
+                registerModal.style.display = 'none';
+            });
+            
+            registerBtn.addEventListener('click', () => {
+                registerModal.style.display = 'flex';
+                loginModal.style.display = 'none';
+            });
+            
+            logoutBtn.addEventListener('click', () => {
+                auth.signOut().then(() => {
+                    console.log('User signed out');
+                }).catch(error => {
+                    console.error('Sign out error:', error);
+                });
+            });
+            
+            // Modal close buttons
+            loginCancelBtn.addEventListener('click', () => {
+                loginModal.style.display = 'none';
+                loginError.textContent = '';
+                loginSuccess.textContent = '';
+            });
+            
+            registerCancelBtn.addEventListener('click', () => {
+                registerModal.style.display = 'none';
+                registerError.textContent = '';
+                registerSuccess.textContent = '';
+            });
+            
+            // Auth submit buttons
+            loginSubmitBtn.addEventListener('click', () => {
+                const email = document.getElementById('loginEmail').value;
+                const password = document.getElementById('loginPassword').value;
+                
+                if (!email || !password) {
+                    loginError.textContent = 'لطفا ایمیل و رمز عبور را وارد کنید';
+                    return;
+                }
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then(userCredential => {
+                        loginError.textContent = '';
+                        loginSuccess.textContent = 'ورود با موفقیت انجام شد';
+                        setTimeout(() => {
+                            loginModal.style.display = 'none';
+                            loginSuccess.textContent = '';
+                        }, 1500);
+                    })
+                    .catch(error => {
+                        console.error('Login error:', error);
+                        loginError.textContent = 'ایمیل یا رمز عبور اشتباه است';
+                    });
+            });
+            
+            registerSubmitBtn.addEventListener('click', () => {
+                const email = document.getElementById('registerEmail').value;
+                const password = document.getElementById('registerPassword').value;
+                const confirmPassword = document.getElementById('registerConfirmPassword').value;
+                
+                if (!email || !password || !confirmPassword) {
+                    registerError.textContent = 'لطفا تمام فیلدها را پر کنید';
+                    return;
+                }
+                
+                if (password !== confirmPassword) {
+                    registerError.textContent = 'رمز عبور و تکرار آن مطابقت ندارند';
+                    return;
+                }
+                
+                if (password.length < 6) {
+                    registerError.textContent = 'رمز عبور باید حداقل 6 کاراکتر باشد';
+                    return;
+                }
+                
+                auth.createUserWithEmailAndPassword(email, password)
+                    .then(userCredential => {
+                        // Create user data in database
+                        const userId = userCredential.user.uid;
+                        const userData = {
+                            email: email,
+                            balance: 10000, // Starting balance of $10,000
+                            createdAt: firebase.database.ServerValue.TIMESTAMP
+                        };
+                        
+                        return database.ref('users/' + userId).set(userData);
+                    })
+                    .then(() => {
+                        registerError.textContent = '';
+                        registerSuccess.textContent = 'ثبت نام با موفقیت انجام شد';
+                        setTimeout(() => {
+                            registerModal.style.display = 'none';
+                            registerSuccess.textContent = '';
+                        }, 1500);
+                    })
+                    .catch(error => {
+                        console.error('Registration error:', error);
+                        registerError.textContent = 'خطا در ثبت نام. لطفا دوباره امتحان کنید';
+                    });
+            });
+            
+            // Trade type buttons
+            longBtn.addEventListener('click', () => {
+                tradeType = 'long';
+                longBtn.classList.add('active');
+                shortBtn.classList.remove('active');
+                updatePotentialProfit();
+            });
+            
+            shortBtn.addEventListener('click', () => {
+                tradeType = 'short';
+                shortBtn.classList.add('active');
+                longBtn.classList.remove('active');
+                updatePotentialProfit();
+            });
+            
+            // Amount buttons
+            document.querySelectorAll('.amount-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.amount-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    tradeAmount = parseFloat(btn.dataset.amount);
+                    amountInput.value = tradeAmount;
+                    updatePotentialProfit();
+                });
+            });
+            
+            // Custom amount input
+            amountInput.addEventListener('input', () => {
+                tradeAmount = parseFloat(amountInput.value) || 0;
+                updatePotentialProfit();
+            });
+            
+            // Time frame buttons
+            document.querySelectorAll('.time-frame').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.time-frame').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    currentTimeFrame = btn.dataset.time;
+                    // In a real app, we would fetch new data for this time frame
+                });
+            });
+            
+            // Time selection buttons
+            document.querySelectorAll('.time-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    document.querySelectorAll('.time-btn').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    tradeDuration = parseInt(btn.dataset.time);
+                });
+            });
+            
+            // Trade button
+            tradeBtn.addEventListener('click', () => {
+                if (activeTrade) {
+                    alert('شما در حال حاضر یک معامله فعال دارید');
+                    return;
+                }
+                
+                if (tradeAmount <= 0) {
+                    alert('لطفا مقدار معامله را وارد کنید');
+                    return;
+                }
+                
+                if (tradeAmount > balance) {
+                    alert('موجودی حساب شما کافی نیست');
+                    return;
+                }
+                
+                startTrade();
+            });
+        }
+        
+        // Load user data from Firebase
+        function loadUserData(userId) {
+            database.ref('users/' + userId).on('value', snapshot => {
+                const userData = snapshot.val();
+                if (userData) {
+                    balance = userData.balance || 0;
+                    balanceAmount.textContent = `$${balance.toFixed(2)}`;
+                    
+                    // Load trade history
+                    if (userData.trades) {
+                        updateSignalHistory(userData.trades);
+                    }
+                }
+            });
+        }
+        
+        // Start a new trade
+        function startTrade() {
+            const startPrice = currentPrice;
+            const startTime = new Date().getTime();
+            const endTime = startTime + (tradeDuration * 1000);
+            
+            activeTrade = {
+                type: tradeType,
+                amount: tradeAmount,
+                startPrice: startPrice,
+                startTime: startTime,
+                endTime: endTime,
+                duration: tradeDuration
+            };
+            
+            // Deduct amount from balance
+            balance -= tradeAmount;
+            balanceAmount.textContent = `$${balance.toFixed(2)}`;
+            
+            // Update user balance in Firebase
+            const userId = auth.currentUser.uid;
+            database.ref('users/' + userId).update({
+                balance: balance
+            });
+            
+            // Show trade indicator on chart
+            showTradeIndicator();
+            
+            // Start countdown
+            const tradeInterval = setInterval(() => {
+                const now = new Date().getTime();
+                const remaining = Math.max(0, endTime - now);
+                
+                if (remaining <= 0) {
+                    clearInterval(tradeInterval);
+                    finishTrade();
+                }
+            }, 1000);
+        }
+        
+        // Update active trade (called on each price change)
+        function updateActiveTrade() {
+            // In a real app, we might show current profit/loss during the trade
+        }
+        
+        // Finish the active trade
+        function finishTrade() {
+            if (!activeTrade) return;
+            
+            const endPrice = currentPrice;
+            let profit = 0;
+            let isWin = false;
+            
+            if (activeTrade.type === 'long') {
+                isWin = endPrice > activeTrade.startPrice;
+            } else {
+                isWin = endPrice < activeTrade.startPrice;
+            }
+            
+            // Calculate profit/loss (100% of amount)
+            profit = isWin ? activeTrade.amount : -activeTrade.amount;
+            
+            // Update balance
+            balance += activeTrade.amount + profit;
+            balanceAmount.textContent = `$${balance.toFixed(2)}`;
+            
+            // Create trade record
+            const tradeRecord = {
+                type: activeTrade.type,
+                amount: activeTrade.amount,
+                duration: activeTrade.duration,
+                startPrice: activeTrade.startPrice,
+                endPrice: endPrice,
+                profit: profit,
+                timestamp: firebase.database.ServerValue.TIMESTAMP,
+                isWin: isWin
+            };
+            
+            // Save to Firebase
+            const userId = auth.currentUser.uid;
+            const tradeRef = database.ref('users/' + userId + '/trades').push();
+            tradeRef.set(tradeRecord);
+            
+            // Update balance in Firebase
+            database.ref('users/' + userId).update({
+                balance: balance
+            });
+            
+            // Show trade result
+            const result = isWin ? 'برنده شدید!' : 'متاسفانه باختید';
+            alert(`معامله شما به پایان رسید. ${result} ${profit > 0 ? '+' : ''}${profit.toFixed(2)} دلار`);
+            
+            // Create and show trade screenshot
+            createTradeScreenshot(tradeRecord);
+            
+            // Clear active trade
+            activeTrade = null;
+            
+            // Remove trade indicator
+            hideTradeIndicator();
+        }
+        
+        // Show trade indicator on chart
+        function showTradeIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = `trade-indicator ${activeTrade.type}-indicator`;
+            indicator.textContent = activeTrade.type === 'long' ? 'لانگ' : 'شارت';
+            indicator.id = 'tradeIndicator';
+            document.querySelector('.chart-container').appendChild(indicator);
+        }
+        
+        // Hide trade indicator
+        function hideTradeIndicator() {
+            const indicator = document.getElementById('tradeIndicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+        
+        // Update signal history display
+        function updateSignalHistory(trades) {
+            // Clear existing signals
+            signalHistory.innerHTML = '';
+            
+            // Convert trades object to array and sort by timestamp
+            const tradesArray = Object.entries(trades).map(([key, value]) => ({ id: key, ...value }));
+            tradesArray.sort((a, b) => b.timestamp - a.timestamp);
+            
+            // Add signals to history
+            tradesArray.forEach(trade => {
+                const signalCard = document.createElement('div');
+                signalCard.className = 'signal-card';
+                
+                const date = new Date(trade.timestamp);
+                const dateString = date.toLocaleDateString('fa-IR');
+                const timeString = date.toLocaleTimeString('fa-IR');
+                
+                signalCard.innerHTML = `
+                    <div class="signal-header">
+                        <div class="signal-type ${trade.type}">${trade.type === 'long' ? 'لانگ' : 'شارت'}</div>
+                        <div class="signal-date">${dateString} - ${timeString}</div>
+                    </div>
+                    <div class="signal-details">
+                        <div class="signal-detail">
+                            <div class="signal-detail-label">مقدار سرمایه:</div>
+                            <div>$${trade.amount.toFixed(2)}</div>
+                        </div>
+                        <div class="signal-detail">
+                            <div class="signal-detail-label">مدت زمان:</div>
+                            <div>${trade.duration} ثانیه</div>
+                        </div>
+                        <div class="signal-detail">
+                            <div class="signal-detail-label">قیمت ورود:</div>
+                            <div>$${trade.startPrice.toFixed(2)}</div>
+                        </div>
+                        <div class="signal-detail">
+                            <div class="signal-detail-label">قیمت خروج:</div>
+                            <div>$${trade.endPrice.toFixed(2)}</div>
+                        </div>
+                    </div>
+                    <div class="signal-result ${trade.isWin ? 'success' : 'failed'}">
+                        نتیجه: ${trade.isWin ? 'موفق' : 'ناموفق'} (${trade.profit > 0 ? '+' : ''}${trade.profit.toFixed(2)} دلار)
+                    </div>
+                    <div class="signal-footer">
+                        <div class="signal-id">#${trade.id.substring(0, 6)}</div>
+                        <div class="signal-actions">
+                            <button class="signal-action-btn share-btn" data-tradeid="${trade.id}">
+                                <i class="fas fa-share-alt"></i> اشتراک گذاری
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                signalHistory.appendChild(signalCard);
+            });
+            
+            // Add event listeners to share buttons
+            document.querySelectorAll('.share-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const tradeId = btn.dataset.tradeid;
+                    const trade = tradesArray.find(t => t.id === tradeId);
+                    if (trade) {
+                        createTradeScreenshot(trade);
+                    }
+                });
+            });
+        }
+        
+        // Create trade screenshot for sharing
+        function createTradeScreenshot(trade) {
+            // Prepare screenshot template
+            const template = document.getElementById('screenshotTemplate');
+            template.style.display = 'block';
+            
+            // Fill template with trade data
+            document.getElementById('screenshotType').textContent = trade.type === 'long' ? 'لانگ' : 'شارت';
+            document.getElementById('screenshotEntryPrice').textContent = `$${trade.startPrice.toFixed(2)}`;
+            document.getElementById('screenshotExitPrice').textContent = `$${trade.endPrice.toFixed(2)}`;
+            document.getElementById('screenshotAmount').textContent = `$${trade.amount.toFixed(2)}`;
+            document.getElementById('screenshotDuration').textContent = `${trade.duration} ثانیه`;
+            
+            const date = new Date(trade.timestamp);
+            document.getElementById('screenshotDate').textContent = date.toLocaleDateString('fa-IR') + ' ' + date.toLocaleTimeString('fa-IR');
+            
+            const resultElement = document.getElementById('screenshotResult');
+            resultElement.textContent = `نتیجه: ${trade.isWin ? 'موفق' : 'ناموفق'} (${trade.profit > 0 ? '+' : ''}${trade.profit.toFixed(2)} دلار)`;
+            resultElement.className = `screenshot-result ${trade.isWin ? 'success' : 'failed'}`;
+            
+            // Create chart for screenshot
+            const ctx = document.getElementById('screenshotChart').getContext('2d');
+            
+            // Destroy previous chart if exists
+            if (screenshotChart) {
+                screenshotChart.destroy();
+            }
+            
+            // Create new chart
+            screenshotChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: Array(20).fill(''),
+                    datasets: [{
+                        data: Array(20).fill(trade.startPrice).map((val, i) => {
+                            // Simulate price movement during trade
+                            const progress = i / 19;
+                            const priceDiff = trade.endPrice - trade.startPrice;
+                            return trade.startPrice + (priceDiff * progress);
+                        }),
+                        borderColor: trade.isWin ? '#2ecc71' : '#e74c3c',
+                        backgroundColor: 'transparent',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            enabled: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Take screenshot
+            html2canvas(template).then(canvas => {
+                // Create download link
+                const link = document.createElement('a');
+                link.download = `afg-trade-${trade.id.substring(0, 6)}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                
+                // Hide template
+                template.style.display = 'none';
+            });
+        }
+        
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html> 
