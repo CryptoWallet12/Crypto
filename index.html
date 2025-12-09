@@ -1,148 +1,254 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ps" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ویډرا ټیم - روزانه ګټه</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <title>TON Miner</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;700&family=Noto+Sans+Pashto&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
     <div class="container">
-        <header>
-            <div class="logo">
-                <h1>ویډرا ټیم</h1>
-                <p>روزانه ګټه</p>
+        <!-- نويشن بار -->
+        <header class="navbar">
+            <div class="user-info">
+                <img id="user-photo" src="" alt="User Photo" class="user-photo">
+                <div class="user-details">
+                    <h2 id="username" class="username"></h2>
+                    <span class="verified-badge"><i class="fas fa-check-circle"></i> تایید شوی</span>
+                </div>
             </div>
-            <nav>
-                <ul>
-                    <li><a href="#" class="active">کور</a></li>
-                    <li><a href="#">زموږ په اړه</a></li>
-                    <li><a href="#">پلانونه</a></li>
-                    <li><a href="#">اړیکه</a></li>
-                </ul>
-            </nav>
-            <div class="auth-buttons">
-                <button id="loginBtn">ننوتل</button>
-                <button id="registerBtn">راجستر</button>
+            <div class="nav-buttons">
+                <button class="settings-btn" id="settings-btn"><i class="fas fa-cog"></i></button>
+                <button class="team-btn" id="team-btn"><i class="fas fa-users"></i></button>
             </div>
         </header>
 
-        <main>
-            <section class="hero">
-                <div class="hero-content">
-                    <h2>خپل پانګه اچونه وکړئ او روزانه ګټه ترلاسه کړئ</h2>
-                    <p>د USDT BEP20 سره خوندي او چټک پانګه اچونه او ویډرا</p>
-                    <button id="investNow">اوس پانګه اچونه وکړئ</button>
+        <!-- اصلی محتویات -->
+        <main class="main-content">
+            <!-- د صفحو نوملړ -->
+            <nav class="page-tabs" id="page-tabs">
+                <button class="tab active" data-page="mining"><i class="fas fa-digging"></i> مایننګ</button>
+                <button class="tab" data-page="referral"><i class="fas fa-user-friends"></i> ریفریل</button>
+                <button class="tab" data-page="profile"><i class="fas fa-user"></i> پروفایل</button>
+            </nav>
+
+            <!-- د مایننګ صفحه -->
+            <section id="mining-page" class="page active">
+                <div class="ton-logo">
+                    <img src="https://ton.org/download/ton_symbol.svg" alt="TON Logo" width="80">
+                    <h1 class="app-title">TON Miner</h1>
                 </div>
-                <div class="hero-image">
-                    <img src="https://via.placeholder.com/500x300" alt="Investment Illustration">
+                
+                <div class="balance-card">
+                    <div class="balance-header">
+                        <h3>اصلي بیلانس</h3>
+                        <span class="ton-badge">TON</span>
+                    </div>
+                    <div class="balance-amount" id="main-balance">0.001 TON</div>
+                    <div class="mined-amount">
+                        <small>ماین شوی: <span id="mined-balance">0.00000 TON</span></small>
+                    </div>
+                </div>
+
+                <div class="mining-area">
+                    <h3 class="section-title">مایننګ ماشین</h3>
+                    <div class="machine-container">
+                        <div class="machine" id="mining-machine">
+                            <div class="machine-body">
+                                <div class="miner-icon"><i class="fas fa-server"></i></div>
+                                <div class="mining-indicator" id="mining-indicator"></div>
+                            </div>
+                            <div class="machine-base"></div>
+                        </div>
+                        <div class="mining-stats">
+                            <div class="stat">
+                                <span>د مایننګ وخت:</span>
+                                <span id="mining-time">00:00:00</span>
+                            </div>
+                            <div class="stat">
+                                <span>د ورځې ترلاسه شوی:</span>
+                                <span id="daily-earned">0.00000 TON</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="controls">
+                        <button class="btn btn-primary btn-large" id="start-mining-btn">
+                            <i class="fas fa-play"></i> Start Mining
+                        </button>
+                        <button class="btn btn-secondary" id="claim-ton-btn" disabled>
+                            <i class="fas fa-coins"></i> Claim TON
+                        </button>
+                    </div>
+                    <p class="info-text">
+                        <i class="fas fa-info-circle"></i> هر 24 ساعته کې 0.01 TON ترلاسه کوئ. ماین شوی تون هر ثانیه زياتيږي.
+                    </p>
                 </div>
             </section>
 
-            <section class="stats">
-                <div class="stat-card">
-                    <i class="fas fa-users"></i>
-                    <h3>10,000+</h3>
-                    <p>عضوان</p>
+            <!-- د ریفریل صفحه -->
+            <section id="referral-page" class="page">
+                <div class="referral-header">
+                    <h2><i class="fas fa-user-friends"></i> ریفریل سیستم</h2>
+                    <div class="referral-stats">
+                        <div class="stat-box">
+                            <h4>د ریفریل شمېره</h4>
+                            <p id="referral-count">0</p>
+                        </div>
+                        <div class="stat-box">
+                            <h4>د ریفریل ګټه</h4>
+                            <p id="referral-earnings">0 TON</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <i class="fas fa-hand-holding-usd"></i>
-                    <h3>$5M+</h3>
-                    <p>پانګه اچونه</p>
+
+                <div class="referral-link-box">
+                    <h3>خپل ریفریل لینک</h3>
+                    <div class="link-container">
+                        <input type="text" id="referral-link" readonly value="لینک لوډ کيږي...">
+                        <button class="btn btn-small" id="copy-link-btn"><i class="fas fa-copy"></i> کاپي</button>
+                    </div>
+                    <div class="share-buttons">
+                        <button class="btn btn-telegram" id="share-telegram-btn">
+                            <i class="fab fa-telegram"></i> په تلګرام کې شریک کړئ
+                        </button>
+                    </div>
                 </div>
-                <div class="stat-card">
-                    <i class="fas fa-chart-line"></i>
-                    <h3>2.5%</h3>
-                    <p>روزانه ګټه</p>
+
+                <div class="referral-info">
+                    <h3><i class="fas fa-info-circle"></i> د ریفریل سیستم معلومات</h3>
+                    <ul>
+                        <li>هر ریفریل لپاره <strong>0.01 TON</strong> ترلاسه کوئ</li>
+                        <li>ریفریل باید د تاسو د لینک له لارې راجستر شي</li>
+                        <li>د ویډرا لپاره لږ تر لږه 5 ریفریل ضروري دي</li>
+                        <li>ریفریل ګټه په اصل بیلانس کې اضافه کيږي</li>
+                    </ul>
+                </div>
+            </section>
+
+            <!-- د پروفایل او ویډرا صفحه -->
+            <section id="profile-page" class="page">
+                <div class="profile-header">
+                    <div class="profile-photo-container">
+                        <img id="profile-photo" src="" alt="Profile Photo" class="profile-photo-large">
+                        <span class="verified-large"><i class="fas fa-check-circle"></i></span>
+                    </div>
+                    <div class="profile-info">
+                        <h2 id="profile-username"></h2>
+                        <p class="user-id">ID: <span id="user-id"></span></p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                        <h4>ټول بیلانس</h4>
+                        <p id="total-balance">0 TON</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-digging"></i></div>
+                        <h4>ټول ماین شوي</h4>
+                        <p id="total-mined">0 TON</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-money-bill-transfer"></i></div>
+                        <h4>ټول ویډرا شوي</h4>
+                        <p id="total-withdrawn">0 TON</p>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-users"></i></div>
+                        <h4>ریفریل</h4>
+                        <p id="profile-referrals">0</p>
+                    </div>
+                </div>
+
+                <div class="withdrawal-section">
+                    <h3><i class="fas fa-paper-plane"></i> ویډرا سیستم</h3>
+                    <div class="withdrawal-form">
+                        <div class="form-group">
+                            <label for="ton-address">TON ادرس</label>
+                            <input type="text" id="ton-address" placeholder="UQB...">
+                        </div>
+                        <div class="form-group">
+                            <label for="withdrawal-amount">مقدار (TON)</label>
+                            <input type="number" id="withdrawal-amount" min="0.1" step="0.01" value="0.1">
+                            <small>لږترلږه: 0.1 TON</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="available-balance">شته بیلانس</label>
+                            <input type="text" id="available-balance" value="0 TON" readonly>
+                        </div>
+                        <button class="btn btn-primary" id="withdraw-btn">
+                            <i class="fas fa-paper-plane"></i> ویډرا کړئ
+                        </button>
+                    </div>
+                    
+                    <div class="withdrawal-info">
+                        <h4><i class="fas fa-info-circle"></i> د ویډرا شرایط</h4>
+                        <ul>
+                            <li>لږترلږه ویډرا: <strong>0.1 TON</strong></li>
+                            <li>د ویډرا وخت: <strong>1 څخه تر 24 ساعتونو</strong></li>
+                            <li>د ویډرا لپاره: <strong>لږترلږه 5 ریفریل</strong> ضروري دي</li>
+                            <li>د ویډرا فیس: <strong>0%</strong></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="history-section">
+                    <h3><i class="fas fa-history"></i> د ویډرا تاریخ</h3>
+                    <div class="history-list" id="withdrawal-history">
+                        <div class="empty-history">تر اوسه هیڅ ویډرا نشته</div>
+                    </div>
                 </div>
             </section>
         </main>
     </div>
 
-    <!-- Auth Modals -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>ننوتل</h2>
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="loginEmail">بریښنالیک</label>
-                    <input type="email" id="loginEmail" required>
+    <!-- د تنظیماتو منو -->
+    <div class="settings-menu" id="settings-menu">
+        <div class="menu-header">
+            <h3><i class="fas fa-cog"></i> تنظیمات</h3>
+            <button class="close-menu" id="close-settings"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="menu-content">
+            <div class="menu-section">
+                <h4>ژبه</h4>
+                <div class="language-selector">
+                    <button class="lang-btn active" data-lang="ps">پښتو</button>
+                    <button class="lang-btn" data-lang="fa">فارسی</button>
+                    <button class="lang-btn" data-lang="en">English</button>
                 </div>
-                <div class="form-group">
-                    <label for="loginPassword">پاسورډ</label>
-                    <input type="password" id="loginPassword" required>
-                </div>
-                <button type="submit">ننوتل</button>
-                <p>نه تاسو راجستر یاست؟ <a href="#" id="showRegister">راجستر شئ</a></p>
-            </form>
+            </div>
+            <div class="menu-section">
+                <h4>د اپلیکیشن معلومات</h4>
+                <p>TON Miner v1.0</p>
+                <p>د مایننګ ایردراپ اپلیکیشن</p>
+            </div>
         </div>
     </div>
 
-    <div id="registerModal" class="modal">
-        <div class="modal-content">
-            <span class="close">&times;</span>
-            <h2>راجستر</h2>
-            <form id="registerForm">
-                <div class="form-group">
-                    <label for="registerName">نوم</label>
-                    <input type="text" id="registerName" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerEmail">بریښنالیک</label>
-                    <input type="email" id="registerEmail" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerPassword">پاسورډ</label>
-                    <input type="password" id="registerPassword" required>
-                </div>
-                <div class="form-group">
-                    <label for="registerConfirmPassword">پاسورډ تایید کړئ</label>
-                    <input type="password" id="registerConfirmPassword" required>
-                </div>
-                <button type="submit">راجستر</button>
-                <p>دمخه راجستر یاست؟ <a href="#" id="showLogin">ننوتل</a></p>
-            </form>
+    <!-- د ټیم بټن منو -->
+    <div class="team-menu" id="team-menu">
+        <div class="menu-header">
+            <h3><i class="fas fa-users"></i> سپورت ټیم</h3>
+            <button class="close-menu" id="close-team"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="menu-content">
+            <p>زموږ سره په اړیکه کې شئ:</p>
+            <a href="https://t.me/admin" target="_blank" class="btn btn-telegram">
+                <i class="fab fa-telegram"></i> @admin ته پیغام ولېږئ
+            </a>
         </div>
     </div>
 
-    <div id="dashboardModal" class="modal">
-        <div class="modal-content dashboard">
-            <span class="close">&times;</span>
-            <h2>ستاسو ډاشبورډ</h2>
-            <div class="user-info">
-                <div class="avatar">
-                    <i class="fas fa-user"></i>
-                </div>
-                <h3 id="userName"></h3>
-                <p id="userEmail"></p>
-            </div>
-            
-            <div class="balance-card">
-                <h3>ستاسو موجودي</h3>
-                <h2 id="userBalance">0 USDT</h2>
-                <div class="action-buttons">
-                    <button id="depositBtn">پانګه اچونه</button>
-                    <button id="withdrawBtn">ویډرا</button>
-                </div>
-            </div>
-            
-            <div class="transaction-history">
-                <h3>تاریخچه</h3>
-                <ul id="transactionList">
-                    <!-- Transactions will be added here dynamically -->
-                </ul>
-            </div>
-            
-            <button id="logoutBtn">وتل</button>
-        </div>
-    </div>
+    <!-- د اعلاناتو ساحه -->
+    <div class="notification" id="notification"></div>
 
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-database-compat.js"></script>
-    <script src="script.js"></script>
+    <script src="app.js"></script>
 </body>
 </html> 
