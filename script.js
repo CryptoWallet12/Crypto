@@ -30,12 +30,14 @@ let userData = {
     referralEarnings: 0,
     lastCheck: null,
     currentStreak: 0,
-    referralCode: null
+    referralCode: null,
+    taskCompleted: false
 };
 
 // د ورځنی چیک ارزښتونه
 const DAILY_REWARDS = [10, 15, 25, 50, 85, 120, 235];
 const REFERRAL_REWARD = 125;
+const TASK_REWARD = 50;
 
 // د اپلیکیشن پیل کول
 document.addEventListener('DOMContentLoaded', function() {
@@ -73,6 +75,9 @@ async function initializeApp() {
     // د UI تازه کول
     updateUI();
     
+    // د لوړ مقام کسانو لیست ډکول
+    loadLeaderboard();
+    
     // لوډینګ بندول
     setTimeout(() => {
         showLoading(false);
@@ -98,6 +103,7 @@ async function loadUserData() {
             userData.currentStreak = data.currentStreak || 0;
             userData.walletAddress = data.walletAddress;
             userData.walletConnected = !!data.walletAddress;
+            userData.taskCompleted = data.taskCompleted || false;
             
             // د والیت معلومات تازه کول که چیرې شتون ولري
             if (userData.walletConnected && data.tonBalance) {
@@ -108,12 +114,14 @@ async function loadUserData() {
             await userRef.set({
                 userId: userData.userId,
                 username: userData.username,
+                avatar: userData.avatar,
                 balance: 0,
                 referrals: 0,
                 referralEarnings: 0,
                 lastCheck: null,
                 currentStreak: 0,
                 walletAddress: null,
+                taskCompleted: false,
                 joinedAt: new Date().toISOString(),
                 referralCode: userData.referralCode
             });
@@ -141,10 +149,6 @@ function updateUI() {
     document.getElementById('referralCount').textContent = userData.referrals;
     document.getElementById('referralEarnings').textContent = userData.referralEarnings;
     
-    // د USD ارزښت حساب کول
-    const usdValue = (userData.balance * 0.02).toFixed(2);
-    document.getElementById('usdValue').textContent = usdValue;
-    
     // د والیت حالت تازه کول
     if (userData.walletConnected) {
         document.getElementById('connectWalletBtn').style.display = 'none';
@@ -165,6 +169,9 @@ function updateUI() {
     
     // د ورځنی چیک پروګرس تازه کول
     updateDailyCheckProgress();
+    
+    // د تاسک حالت تازه کول
+    updateTaskStatus();
 }
 
 // د ورځنی چیک پروګرس تازه کول
@@ -194,6 +201,22 @@ function updateDailyCheckProgress() {
     }
 }
 
+// د تاسک حالت تازه کول
+function updateTaskStatus() {
+    const startTaskBtn = document.getElementById('startTaskBtn');
+    const taskStatus = document.getElementById('taskStatus');
+    const checkTaskBtn = document.getElementById('checkTaskBtn');
+    
+    if (userData.taskCompleted) {
+        startTaskBtn.style.display = 'none';
+        taskStatus.style.display = 'none';
+        checkTaskBtn.style.display = 'none';
+        document.querySelector('.task-section p').textContent = "Community task already completed!";
+    } else {
+        startTaskBtn.style.display = 'block';
+    }
+}
+
 // د ایونت لیسنر تنظیمول
 function setupEventListeners() {
     // د والیت کنکټ بټن
@@ -205,15 +228,23 @@ function setupEventListeners() {
     // د کاپي لینک بټن
     document.getElementById('copyLinkBtn').addEventListener('click', copyReferralLink);
     
+    // د Withdraw بټن
+    document.getElementById('withdrawBtn').addEventListener('click', showWithdrawMessage);
+    
+    // د تاسک بټنونه
+    document.getElementById('startTaskBtn').addEventListener('click', startTask);
+    document.getElementById('checkTaskBtn').addEventListener('click', completeTask);
+    
     // د Telegram والیت پیښې
     if (window.Telegram && Telegram.WebApp) {
         Telegram.WebApp.onEvent('walletDataChanged', handleWalletData);
     }
 }
 
-// د والیت سره وصل کول
+// د TON والیت سره وصل کول (د Telegram او TON سره)
 function connectWallet() {
     if (window.Telegram && Telegram.WebApp) {
+        // د Telegram والیت انټرفیس کارول
         Telegram.WebApp.openWallet();
     } else {
         // د ټیسټ والیت
@@ -233,18 +264,18 @@ function handleWalletData(data) {
         // UI تازه کول
         updateUI();
         
-        showMessage("Wallet connected successfully!", "success");
+        showMessage("TON Wallet connected successfully!", "success");
     }
 }
 
 // د ټیسټ والیت وصل کول
 function simulateWalletConnection() {
-    // د ټیسټ والیت ادرس
-    const testAddress = "EQ" + Array.from({length: 48}, () => 
+    // د TON والیت ادرس جوړول
+    const tonAddress = "EQ" + Array.from({length: 48}, () => 
         "0123456789ABCDEF".charAt(Math.floor(Math.random() * 16))
     ).join("");
     
-    userData.walletAddress = testAddress;
+    userData.walletAddress = tonAddress;
     userData.walletConnected = true;
     
     // په Firebase کې ذخیره کول
@@ -253,13 +284,24 @@ function simulateWalletConnection() {
     // UI تازه کول
     updateUI();
     
-    showMessage("Test wallet connected successfully!", "success");
+    showMessage("TON Wallet connected successfully!", "success");
+}
+
+// د Withdraw بټن لپاره
+function showWithdrawMessage() {
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const withdrawMessage = document.getElementById('withdrawMessage');
+    
+    withdrawBtn.style.display = 'none';
+    withdrawMessage.style.display = 'flex';
+    
+    showMessage("Withdraw feature will be available soon!", "info");
 }
 
 // ورځنی چیک ترسره کول
 async function claimDailyReward() {
     if (!userData.walletConnected) {
-        showMessage("Please connect your wallet first", "error");
+        showMessage("Please connect your TON wallet first", "error");
         return;
     }
     
@@ -302,66 +344,112 @@ async function claimDailyReward() {
     updateUI();
     
     // د انعام انیمیشن
-    showRewardAnimation(reward);
+    showRewardAnimation(reward, "Daily Reward");
     
     showMessage(`Daily reward claimed! You received ${reward} MetaX tokens`, "success");
 }
 
-// د ریفریل پروسیس کول
-async function handleReferral(referrerId) {
-    if (!referrerId || referrerId === userData.userId) return;
+// د تاسک پیلول
+function startTask() {
+    // د چینل لینک خلاصول
+    window.open("https://t.me/MetaXCoin_Community", "_blank");
     
-    try {
-        // د ریفریل چیک کول که چیرې دمخه ثبت شوی وي
-        const referralCheckRef = database.ref(`referrals/${userData.userId}`);
-        const snapshot = await referralCheckRef.once('value');
+    // د تاسک پروګرس ښودل
+    const startTaskBtn = document.getElementById('startTaskBtn');
+    const taskStatus = document.getElementById('taskStatus');
+    const checkTaskBtn = document.getElementById('checkTaskBtn');
+    
+    startTaskBtn.style.display = 'none';
+    taskStatus.style.display = 'block';
+    
+    // د پروګرس بار انیمیشن
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 20;
+        document.getElementById('progressFill').style.width = `${progress}%`;
+        document.getElementById('progressText').textContent = `${progress}%`;
         
-        if (snapshot.exists()) return; // دمخه ثبت شوی
-        
-        // د ریفریل ثبت کول
-        await referralCheckRef.set({
-            referrerId: referrerId,
-            referredId: userData.userId,
-            timestamp: new Date().toISOString(),
-            rewardPaid: false
-        });
-        
-        // د ریفریل انعام ورکول
-        const referrerRef = database.ref(`users/${referrerId}`);
-        const referrerSnapshot = await referrerRef.once('value');
-        
-        if (referrerSnapshot.exists()) {
-            const referrerData = referrerSnapshot.val();
-            const newBalance = (referrerData.balance || 0) + REFERRAL_REWARD;
-            const newReferrals = (referrerData.referrals || 0) + 1;
-            const newReferralEarnings = (referrerData.referralEarnings || 0) + REFERRAL_REWARD;
-            
-            await referrerRef.update({
-                balance: newBalance,
-                referrals: newReferrals,
-                referralEarnings: newReferralEarnings
-            });
+        if (progress >= 100) {
+            clearInterval(interval);
+            document.getElementById('taskMessage').textContent = "Task completed! Click Check to claim reward";
+            checkTaskBtn.style.display = 'block';
+            checkTaskBtn.disabled = false;
         }
-        
-        showMessage("Welcome! You joined via referral link", "success");
-    } catch (error) {
-        console.error("Error processing referral:", error);
-    }
+    }, 1000); // 5 ثانیې لپاره (هر 1 ثانیه 20% زیاتوالی)
 }
 
-// د ریفریل لینک کاپي کول
-function copyReferralLink() {
-    const linkInput = document.getElementById('referralLink');
-    linkInput.select();
-    linkInput.setSelectionRange(0, 99999);
+// د تاسک بشپړول
+async function completeTask() {
+    // د تاسک بشپړ ډیټا بیس کې ثبتول
+    userData.taskCompleted = true;
+    userData.balance += TASK_REWARD;
     
-    navigator.clipboard.writeText(linkInput.value)
-        .then(() => {
-            showMessage("Referral link copied to clipboard!", "success");
-        })
-        .catch(err => {
-            showMessage("Failed to copy link", "error");
-        });
+    // په Firebase کې ذخیره کول
+    await saveUserData();
+    
+    // UI تازه کول
+    updateUI();
+    
+    // د انعام انیمیشن
+    showRewardAnimation(TASK_REWARD, "Task Reward");
+    
+    showMessage(`Task completed! You received ${TASK_REWARD} MetaX tokens`, "success");
+}
+
+// د لوړ مقام کسانو لیست ډکول
+async function loadLeaderboard() {
+    try {
+        const usersRef = database.ref('users');
+        const snapshot = await usersRef.orderByChild('balance').limitToLast(5).once('value');
+        
+        const leaderboardList = document.getElementById('leaderboardList');
+        leaderboardList.innerHTML = '';
+        
+        if (snapshot.exists()) {
+            const users = [];
+            snapshot.forEach(childSnapshot => {
+                users.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            
+            // د بالانس له مخې ترتیبول (لوړ څخه ټیټ)
+            users.sort((a, b) => (b.balance || 0) - (a.balance || 0));
+            
+            // د هر کارن لپاره HTML جوړول
+            users.forEach((user, index) => {
+                const rank = index + 1;
+                const leaderboardItem = document.createElement('div');
+                leaderboardItem.className = 'leaderboard-item';
+                
+                // د عکس لپاره ډیفالٹ
+                const avatar = user.avatar || "assets/default-avatar.png";
+                const username = user.username || "User";
+                const balance = user.balance || 0;
+                const referrals = user.referrals || 0;
+                
+                leaderboardItem.innerHTML = `
+                    <div class="leaderboard-rank rank-${rank}">${rank}</div>
+                    <img src="${avatar}" alt="${username}" class="leaderboard-avatar">
+                    <div class="leaderboard-details">
+                        <div class="leaderboard-name">${username}</div>
+                        <div class="leaderboard-stats">
+                            <span><i class="fas fa-coins"></i> ${balance} MetaX</span>
+                            <span><i class="fas fa-user-friends"></i> ${referrals} Ref</span>
+                        </div>
+                    </div>
+                `;
+                
+                leaderboardList.appendChild(leaderboardItem);
+            });
+        } else {
+            leaderboardList.innerHTML = '<p class="no-leaders">No leaderboard data available yet.</p>';
+        }
+    } catch (error) {
+        console.error("Error loading leaderboard:", error);
+        document.getElementById('leaderboardList').innerHTML = '<p class="no-leaders">Error loading leaderboard.</p>';
+    }
 }
 
 // د کارن معلومات په Firebase کې ذخیره کول
@@ -371,6 +459,7 @@ async function saveUserData() {
     try {
         await database.ref(`users/${userData.userId}`).update({
             username: userData.username,
+            avatar: userData.avatar,
             balance: userData.balance,
             referrals: userData.referrals,
             referralEarnings: userData.referralEarnings,
@@ -378,21 +467,26 @@ async function saveUserData() {
             currentStreak: userData.currentStreak,
             walletAddress: userData.walletAddress,
             walletConnected: userData.walletConnected,
+            taskCompleted: userData.taskCompleted,
             updatedAt: new Date().toISOString()
         });
+        
+        // د لوړ مقام کسانو لیست تازه کول
+        loadLeaderboard();
     } catch (error) {
         console.error("Error saving user data:", error);
     }
 }
 
 // د انعام انیمیشن ښودل
-function showRewardAnimation(reward) {
+function showRewardAnimation(reward, type) {
     const animation = document.createElement('div');
     animation.className = 'reward-animation';
     animation.innerHTML = `
         <div class="reward-content">
             <i class="fas fa-gift"></i>
             <div class="reward-text">+${reward} MetaX</div>
+            <div class="reward-type">${type}</div>
         </div>
     `;
     
@@ -469,6 +563,11 @@ style.textContent = `
         font-size: 36px;
     }
     
+    .reward-type {
+        font-size: 16px;
+        opacity: 0.8;
+    }
+    
     @keyframes rewardPopup {
         0% {
             opacity: 0;
@@ -499,6 +598,18 @@ style.textContent = `
     .toast.error {
         background: linear-gradient(135deg, rgba(255, 107, 107, 0.9), rgba(255, 71, 87, 0.9));
         border-color: rgba(255, 107, 107, 0.5);
+    }
+    
+    .toast.info {
+        background: linear-gradient(135deg, rgba(0, 136, 204, 0.9), rgba(0, 102, 170, 0.9));
+        border-color: rgba(0, 136, 204, 0.5);
+    }
+    
+    .no-leaders {
+        text-align: center;
+        color: #a0a0c0;
+        font-style: italic;
+        padding: 20px;
     }
 `;
 document.head.appendChild(style);
