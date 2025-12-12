@@ -1,254 +1,176 @@
 <!DOCTYPE html>
-<html lang="ps" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TON Miner</title>
+    <title>MetaX Coin Airdrop</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;700&family=Noto+Sans+Pashto&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <div class="container">
-        <!-- نويشن بار -->
-        <header class="navbar">
-            <div class="user-info">
-                <img id="user-photo" src="" alt="User Photo" class="user-photo">
-                <div class="user-details">
-                    <h2 id="username" class="username"></h2>
-                    <span class="verified-badge"><i class="fas fa-check-circle"></i> تایید شوی</span>
-                </div>
+    <!-- لوډینګ اسکرین -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="ton-logo-circle">
+                <img src="assets/ton-logo.png" alt="TON Logo" class="ton-logo">
             </div>
-            <div class="nav-buttons">
-                <button class="settings-btn" id="settings-btn"><i class="fas fa-cog"></i></button>
-                <button class="team-btn" id="team-btn"><i class="fas fa-users"></i></button>
+            <div class="loading-text">
+                <h2>MetaX Coin Airdrop</h2>
+                <p>Loading...</p>
+                <div class="loading-spinner"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- اصلی اپلیکیشن -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- سربرخه -->
+        <header class="app-header">
+            <div class="user-info">
+                <img id="userAvatar" src="assets/default-avatar.png" alt="User Avatar" class="user-avatar">
+                <span id="username" class="username">User</span>
+            </div>
+            <div class="app-logo">
+                <h1>MetaX Coin</h1>
+                <p>TON Blockchain Airdrop</p>
+            </div>
+            <div class="wallet-section">
+                <button id="connectWalletBtn" class="wallet-btn">
+                    <i class="fas fa-wallet"></i>
+                    <span>Connect Wallet</span>
+                </button>
+                <div id="walletInfo" class="wallet-info" style="display: none;">
+                    <p class="wallet-address" id="walletAddress">0x...</p>
+                    <p class="wallet-balance" id="walletBalance">0 TON</p>
+                </div>
             </div>
         </header>
 
-        <!-- اصلی محتویات -->
-        <main class="main-content">
-            <!-- د صفحو نوملړ -->
-            <nav class="page-tabs" id="page-tabs">
-                <button class="tab active" data-page="mining"><i class="fas fa-digging"></i> مایننګ</button>
-                <button class="tab" data-page="referral"><i class="fas fa-user-friends"></i> ریفریل</button>
-                <button class="tab" data-page="profile"><i class="fas fa-user"></i> پروفایل</button>
-            </nav>
-
-            <!-- د مایننګ صفحه -->
-            <section id="mining-page" class="page active">
-                <div class="ton-logo">
-                    <img src="https://ton.org/download/ton_symbol.svg" alt="TON Logo" width="80">
-                    <h1 class="app-title">TON Miner</h1>
+        <main class="app-main">
+            <!-- د بالانس کارډ -->
+            <section class="balance-card">
+                <div class="balance-header">
+                    <h3><i class="fas fa-coins"></i> Your Balance</h3>
+                    <div class="token-symbol">MetaX</div>
                 </div>
-                
-                <div class="balance-card">
-                    <div class="balance-header">
-                        <h3>اصلي بیلانس</h3>
-                        <span class="ton-badge">TON</span>
-                    </div>
-                    <div class="balance-amount" id="main-balance">0.001 TON</div>
-                    <div class="mined-amount">
-                        <small>ماین شوی: <span id="mined-balance">0.00000 TON</span></small>
-                    </div>
+                <div class="balance-amount">
+                    <span id="tokenBalance">0</span>
+                    <span class="token-name">MetaX Tokens</span>
                 </div>
-
-                <div class="mining-area">
-                    <h3 class="section-title">مایننګ ماشین</h3>
-                    <div class="machine-container">
-                        <div class="machine" id="mining-machine">
-                            <div class="machine-body">
-                                <div class="miner-icon"><i class="fas fa-server"></i></div>
-                                <div class="mining-indicator" id="mining-indicator"></div>
-                            </div>
-                            <div class="machine-base"></div>
-                        </div>
-                        <div class="mining-stats">
-                            <div class="stat">
-                                <span>د مایننګ وخت:</span>
-                                <span id="mining-time">00:00:00</span>
-                            </div>
-                            <div class="stat">
-                                <span>د ورځې ترلاسه شوی:</span>
-                                <span id="daily-earned">0.00000 TON</span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="controls">
-                        <button class="btn btn-primary btn-large" id="start-mining-btn">
-                            <i class="fas fa-play"></i> Start Mining
-                        </button>
-                        <button class="btn btn-secondary" id="claim-ton-btn" disabled>
-                            <i class="fas fa-coins"></i> Claim TON
-                        </button>
-                    </div>
-                    <p class="info-text">
-                        <i class="fas fa-info-circle"></i> هر 24 ساعته کې 0.01 TON ترلاسه کوئ. ماین شوی تون هر ثانیه زياتيږي.
-                    </p>
+                <div class="balance-equivalent">
+                    ≈ <span id="usdValue">0</span> USD
                 </div>
             </section>
 
-            <!-- د ریفریل صفحه -->
-            <section id="referral-page" class="page">
-                <div class="referral-header">
-                    <h2><i class="fas fa-user-friends"></i> ریفریل سیستم</h2>
-                    <div class="referral-stats">
-                        <div class="stat-box">
-                            <h4>د ریفریل شمېره</h4>
-                            <p id="referral-count">0</p>
-                        </div>
-                        <div class="stat-box">
-                            <h4>د ریفریل ګټه</h4>
-                            <p id="referral-earnings">0 TON</p>
-                        </div>
+            <!-- ورځنی چیک -->
+            <section class="daily-check-section">
+                <h3><i class="fas fa-calendar-check"></i> Daily Check</h3>
+                <div class="check-progress">
+                    <div class="progress-days">
+                        <div class="day day-1 active" data-day="1">Day 1<br><span>10</span></div>
+                        <div class="day day-2" data-day="2">Day 2<br><span>15</span></div>
+                        <div class="day day-3" data-day="3">Day 3<br><span>25</span></div>
+                        <div class="day day-4" data-day="4">Day 4<br><span>50</span></div>
+                        <div class="day day-5" data-day="5">Day 5<br><span>85</span></div>
+                        <div class="day day-6" data-day="6">Day 6<br><span>120</span></div>
+                        <div class="day day-7" data-day="7">Day 7<br><span>235</span></div>
                     </div>
                 </div>
+                <button id="dailyCheckBtn" class="daily-check-btn" disabled>
+                    <i class="fas fa-check-circle"></i>
+                    <span>Claim Today's Reward</span>
+                </button>
+                <p class="check-info" id="checkInfo">Connect wallet to start daily check</p>
+            </section>
 
-                <div class="referral-link-box">
-                    <h3>خپل ریفریل لینک</h3>
+            <!-- ریفریل سیستم -->
+            <section class="referral-section">
+                <h3><i class="fas fa-user-friends"></i> Referral Program</h3>
+                <div class="referral-stats">
+                    <div class="stat-box">
+                        <div class="stat-number" id="referralCount">0</div>
+                        <div class="stat-label">Referrals</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-number" id="referralEarnings">0</div>
+                        <div class="stat-label">Earned</div>
+                    </div>
+                </div>
+                <div class="referral-link">
+                    <p>Share your referral link and earn 125 tokens for each referral</p>
                     <div class="link-container">
-                        <input type="text" id="referral-link" readonly value="لینک لوډ کيږي...">
-                        <button class="btn btn-small" id="copy-link-btn"><i class="fas fa-copy"></i> کاپي</button>
-                    </div>
-                    <div class="share-buttons">
-                        <button class="btn btn-telegram" id="share-telegram-btn">
-                            <i class="fab fa-telegram"></i> په تلګرام کې شریک کړئ
+                        <input type="text" id="referralLink" readonly class="link-input">
+                        <button id="copyLinkBtn" class="copy-btn">
+                            <i class="fas fa-copy"></i> Copy
                         </button>
                     </div>
-                </div>
-
-                <div class="referral-info">
-                    <h3><i class="fas fa-info-circle"></i> د ریفریل سیستم معلومات</h3>
-                    <ul>
-                        <li>هر ریفریل لپاره <strong>0.01 TON</strong> ترلاسه کوئ</li>
-                        <li>ریفریل باید د تاسو د لینک له لارې راجستر شي</li>
-                        <li>د ویډرا لپاره لږ تر لږه 5 ریفریل ضروري دي</li>
-                        <li>ریفریل ګټه په اصل بیلانس کې اضافه کيږي</li>
-                    </ul>
                 </div>
             </section>
 
-            <!-- د پروفایل او ویډرا صفحه -->
-            <section id="profile-page" class="page">
-                <div class="profile-header">
-                    <div class="profile-photo-container">
-                        <img id="profile-photo" src="" alt="Profile Photo" class="profile-photo-large">
-                        <span class="verified-large"><i class="fas fa-check-circle"></i></span>
+            <!-- د ایردراپ معلومات -->
+            <section class="airdrop-info">
+                <h3><i class="fas fa-info-circle"></i> Airdrop Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Name:</span>
+                        <span class="info-value">MetaX Coin</span>
                     </div>
-                    <div class="profile-info">
-                        <h2 id="profile-username"></h2>
-                        <p class="user-id">ID: <span id="user-id"></span></p>
+                    <div class="info-item">
+                        <span class="info-label">Symbol:</span>
+                        <span class="info-value">MetaX</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Total Supply:</span>
+                        <span class="info-value">100,000,000</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Listing Date:</span>
+                        <span class="info-value">2026/01/15</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Listing Price:</span>
+                        <span class="info-value">$0.02 - $0.1</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Blockchain:</span>
+                        <span class="info-value">TON</span>
                     </div>
                 </div>
+                <div class="exchanges">
+                    <h4>Listing Exchanges:</h4>
+                    <div class="exchange-list">
+                        <span class="exchange-tag">MEXC</span>
+                        <span class="exchange-tag">ByBit</span>
+                        <span class="exchange-tag">XT</span>
+                        <span class="exchange-tag">OurBit</span>
+                    </div>
+                </div>
+            </section>
 
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-wallet"></i></div>
-                        <h4>ټول بیلانس</h4>
-                        <p id="total-balance">0 TON</p>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-digging"></i></div>
-                        <h4>ټول ماین شوي</h4>
-                        <p id="total-mined">0 TON</p>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-money-bill-transfer"></i></div>
-                        <h4>ټول ویډرا شوي</h4>
-                        <p id="total-withdrawn">0 TON</p>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-icon"><i class="fas fa-users"></i></div>
-                        <h4>ریفریل</h4>
-                        <p id="profile-referrals">0</p>
-                    </div>
-                </div>
-
-                <div class="withdrawal-section">
-                    <h3><i class="fas fa-paper-plane"></i> ویډرا سیستم</h3>
-                    <div class="withdrawal-form">
-                        <div class="form-group">
-                            <label for="ton-address">TON ادرس</label>
-                            <input type="text" id="ton-address" placeholder="UQB...">
-                        </div>
-                        <div class="form-group">
-                            <label for="withdrawal-amount">مقدار (TON)</label>
-                            <input type="number" id="withdrawal-amount" min="0.1" step="0.01" value="0.1">
-                            <small>لږترلږه: 0.1 TON</small>
-                        </div>
-                        <div class="form-group">
-                            <label for="available-balance">شته بیلانس</label>
-                            <input type="text" id="available-balance" value="0 TON" readonly>
-                        </div>
-                        <button class="btn btn-primary" id="withdraw-btn">
-                            <i class="fas fa-paper-plane"></i> ویډرا کړئ
-                        </button>
-                    </div>
-                    
-                    <div class="withdrawal-info">
-                        <h4><i class="fas fa-info-circle"></i> د ویډرا شرایط</h4>
-                        <ul>
-                            <li>لږترلږه ویډرا: <strong>0.1 TON</strong></li>
-                            <li>د ویډرا وخت: <strong>1 څخه تر 24 ساعتونو</strong></li>
-                            <li>د ویډرا لپاره: <strong>لږترلږه 5 ریفریل</strong> ضروري دي</li>
-                            <li>د ویډرا فیس: <strong>0%</strong></li>
-                        </ul>
-                    </div>
-                </div>
-
-                <div class="history-section">
-                    <h3><i class="fas fa-history"></i> د ویډرا تاریخ</h3>
-                    <div class="history-list" id="withdrawal-history">
-                        <div class="empty-history">تر اوسه هیڅ ویډرا نشته</div>
-                    </div>
-                </div>
+            <!-- د ټیم برخه -->
+            <section class="community-section">
+                <h3><i class="fab fa-telegram"></i> Join Our Community</h3>
+                <p>Stay updated with the latest news and announcements</p>
+                <a href="https://t.me/MetaXCoin_Community" target="_blank" class="community-btn">
+                    <i class="fab fa-telegram"></i> Join Telegram Group
+                </a>
             </section>
         </main>
+
+        <footer class="app-footer">
+            <p>MetaX Coin Airdrop &copy; 2024 | Powered by TON Blockchain</p>
+        </footer>
     </div>
 
-    <!-- د تنظیماتو منو -->
-    <div class="settings-menu" id="settings-menu">
-        <div class="menu-header">
-            <h3><i class="fas fa-cog"></i> تنظیمات</h3>
-            <button class="close-menu" id="close-settings"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="menu-content">
-            <div class="menu-section">
-                <h4>ژبه</h4>
-                <div class="language-selector">
-                    <button class="lang-btn active" data-lang="ps">پښتو</button>
-                    <button class="lang-btn" data-lang="fa">فارسی</button>
-                    <button class="lang-btn" data-lang="en">English</button>
-                </div>
-            </div>
-            <div class="menu-section">
-                <h4>د اپلیکیشن معلومات</h4>
-                <p>TON Miner v1.0</p>
-                <p>د مایننګ ایردراپ اپلیکیشن</p>
-            </div>
-        </div>
+    <!-- د اطلاعاتو پیغام -->
+    <div id="messageToast" class="toast">
+        <span id="toastMessage"></span>
     </div>
 
-    <!-- د ټیم بټن منو -->
-    <div class="team-menu" id="team-menu">
-        <div class="menu-header">
-            <h3><i class="fas fa-users"></i> سپورت ټیم</h3>
-            <button class="close-menu" id="close-team"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="menu-content">
-            <p>زموږ سره په اړیکه کې شئ:</p>
-            <a href="https://t.me/admin" target="_blank" class="btn btn-telegram">
-                <i class="fab fa-telegram"></i> @admin ته پیغام ولېږئ
-            </a>
-        </div>
-    </div>
-
-    <!-- د اعلاناتو ساحه -->
-    <div class="notification" id="notification"></div>
-
-    <script src="app.js"></script>
+    <script src="script.js"></script>
 </body>
-</html> 
+</html>
