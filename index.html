@@ -9,14 +9,14 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
 </head>
 <body>
-    <!-- لوډینګ اسکرین -->
+    <!-- لوډینګ اسکرین د TON عکس سره -->
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-content">
             <div class="ton-logo-circle">
-                <img src="assets/ton-logo.png" alt="TON Logo" class="ton-logo">
+                <!-- د TON لوګو: د تاسو د لوډینګ لپاره همدې لینک عکس وکاروئ -->
+                <img src="https://i.postimg.cc/JhH1HMP1/grok-image-3a8d0h.jpg" alt="TON Logo" class="ton-logo">
             </div>
             <div class="loading-text">
                 <h2>MetaX Coin Airdrop</h2>
@@ -45,13 +45,14 @@
                 </button>
                 <div id="walletInfo" class="wallet-info" style="display: none;">
                     <p class="wallet-address" id="walletAddress">0x...</p>
+                    <!-- د USD ارزښت لرې شو -->
                     <p class="wallet-balance" id="walletBalance">0 TON</p>
                 </div>
             </div>
         </header>
 
         <main class="app-main">
-            <!-- د بالانس کارډ -->
+            <!-- د بالانس کارډ - د Withdraw بټن سره -->
             <section class="balance-card">
                 <div class="balance-header">
                     <h3><i class="fas fa-coins"></i> Your Balance</h3>
@@ -61,15 +62,21 @@
                     <span id="tokenBalance">0</span>
                     <span class="token-name">MetaX Tokens</span>
                 </div>
-                <div class="balance-equivalent">
-                    ≈ <span id="usdValue">0</span> USD
+                <!-- د USD ارزښت لرې شو -->
+                <button id="withdrawBtn" class="withdraw-btn">
+                    <i class="fas fa-paper-plane"></i> Withdraw
+                </button>
+                <div id="withdrawMessage" class="withdraw-message" style="display: none;">
+                    <i class="fas fa-hourglass-half"></i> Withdraw Coming Soon
                 </div>
             </section>
 
-            <!-- ورځنی چیک -->
+            <!-- ورځنی چیک او تاسک سکشن -->
             <section class="daily-check-section">
-                <h3><i class="fas fa-calendar-check"></i> Daily Check</h3>
+                <h3><i class="fas fa-calendar-check"></i> Daily Check & Tasks</h3>
+                <!-- د هفتې پروګرس -->
                 <div class="check-progress">
+                    <h4>Weekly Progress</h4>
                     <div class="progress-days">
                         <div class="day day-1 active" data-day="1">Day 1<br><span>10</span></div>
                         <div class="day day-2" data-day="2">Day 2<br><span>15</span></div>
@@ -80,11 +87,33 @@
                         <div class="day day-7" data-day="7">Day 7<br><span>235</span></div>
                     </div>
                 </div>
+                <!-- د ورځنی چیک بټن -->
                 <button id="dailyCheckBtn" class="daily-check-btn" disabled>
                     <i class="fas fa-check-circle"></i>
                     <span>Claim Today's Reward</span>
                 </button>
                 <p class="check-info" id="checkInfo">Connect wallet to start daily check</p>
+
+                <!-- د تاسک برخه -->
+                <div class="task-section">
+                    <h4><i class="fas fa-tasks"></i> Community Task</h4>
+                    <p>Join our Telegram channel and get 50 tokens!</p>
+                    <button id="startTaskBtn" class="task-btn">
+                        <i class="fab fa-telegram"></i> Start Task
+                    </button>
+                    <div id="taskStatus" class="task-status" style="display: none;">
+                        <div class="task-progress">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="progressFill"></div>
+                            </div>
+                            <span id="progressText">0%</span>
+                        </div>
+                        <p id="taskMessage">Task in progress...</p>
+                    </div>
+                    <button id="checkTaskBtn" class="task-complete-btn" style="display: none;" disabled>
+                        <i class="fas fa-check"></i> Check
+                    </button>
+                </div>
             </section>
 
             <!-- ریفریل سیستم -->
@@ -111,7 +140,7 @@
                 </div>
             </section>
 
-            <!-- د ایردراپ معلومات -->
+            <!-- د ایردراپ معلومات او لوړ مقام کسان -->
             <section class="airdrop-info">
                 <h3><i class="fas fa-info-circle"></i> Airdrop Information</h3>
                 <div class="info-grid">
@@ -147,6 +176,14 @@
                         <span class="exchange-tag">ByBit</span>
                         <span class="exchange-tag">XT</span>
                         <span class="exchange-tag">OurBit</span>
+                    </div>
+                </div>
+
+                <!-- د لوړ مقام کسانو لیست -->
+                <div class="leaderboard">
+                    <h4><i class="fas fa-trophy"></i> Top 5 Leaders</h4>
+                    <div class="leaderboard-list" id="leaderboardList">
+                        <!-- دلته د لوړ مقام کسانو معلومات JavaScript څخه ډک کیږي -->
                     </div>
                 </div>
             </section>
